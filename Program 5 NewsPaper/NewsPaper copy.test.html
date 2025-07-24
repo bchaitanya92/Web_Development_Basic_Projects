@@ -1,0 +1,50 @@
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+
+describe('The Daily Chronicle HTML', () => {
+  let dom;
+  let document;
+
+  beforeAll(() => {
+    const html = fs.readFileSync(path.resolve(__dirname, './NewsPaper copy.html'), 'utf8');
+    dom = new JSDOM(html);
+    document = dom.window.document;
+
+it('Should display the correct title "The Daily Chronicle" in the browser tab', () => {
+  const title = document.querySelector('title');
+  expect(title.textContent).toBe('The Daily Chronicle');
+});
+  });
+
+it('Should have a responsive layout that adjusts to different screen sizes', () => {
+  const body = document.querySelector('body');
+  const main = document.querySelector('main');
+  const section = document.querySelector('section');
+  const aside = document.querySelector('aside');
+
+  // Check initial layout
+  expect(window.getComputedStyle(body).maxWidth).toBe('1200px');
+  expect(window.getComputedStyle(main).display).toBe('flex');
+  expect(window.getComputedStyle(section).flex).toBe('2');
+  expect(window.getComputedStyle(aside).flex).toBe('1');
+
+  // Simulate a smaller screen size
+  Object.defineProperty(window, 'innerWidth', {writable: true, configurable: true, value: 600});
+  window.dispatchEvent(new Event('resize'));
+
+  // Check layout for smaller screen
+  expect(window.getComputedStyle(main).flexDirection).toBe('column');
+  expect(window.getComputedStyle(section).flex).toBe('auto');
+  expect(window.getComputedStyle(aside).flex).toBe('auto');
+});
+
+it('Should ensure all navigation links are functional and lead to NewPaper.html', () => {
+  const navLinks = document.querySelectorAll('nav ul li a');
+  expect(navLinks.length).toBe(5);
+  
+  navLinks.forEach(link => {
+    expect(link.getAttribute('href')).toBe('NewPaper.html');
+  });
+});
+});
